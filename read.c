@@ -58,7 +58,7 @@ FT_Ensure_Inited(void)
 int
 readFile(char *filename, FontPtr font)
 {
-    int i, j, k, index;
+    int j, k, index;
     int rc;
     FT_Face face;
     StrikePtr strike;
@@ -234,7 +234,7 @@ readFile(char *filename, FontPtr font)
         return -1;
     }
 
-    for(i = 0; i < face->num_fixed_sizes; i++) {
+    for(int i = 0; i < face->num_fixed_sizes; i++) {
         if(verbose_flag)
             fprintf(stderr, "size %d: %dx%d\n",
                     i, 
@@ -294,7 +294,7 @@ readFile(char *filename, FontPtr font)
     FT_Done_Face(face);
 
     j = 0;
-    for(i = 0; i < FONT_CODES; i++) {
+    for(int i = 0; i < FONT_CODES; i++) {
         int found = 0;
         strike = font->strikes;
         while(strike) {
