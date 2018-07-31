@@ -107,7 +107,7 @@ readFile(char *filename, FontPtr font)
     if(font->numNames == 0 && face->style_name && face->family_name) {
         char *full_name, *unique_name;
         BDF_PropertyRec prop;
-        int rc, i;
+        int i;
         if(strcmp(face->style_name, "Regular") == 0)
             full_name = sprintf_alloc("%s", face->family_name);
         else
