@@ -37,6 +37,7 @@ THE SOFTWARE.
 #include FT_FREETYPE_H
 #include FT_BDF_H
 #include "X11/Xos.h"
+#include "X11/Xfuncproto.h" /* for _X_ATTRIBUTE_PRINTF */
 #include "fonttosfnt.h"
 
 #ifdef NEED_SNPRINTF
@@ -80,6 +81,7 @@ sprintf_alloc(const char *f, ...)
 }
 
 #if HAVE_VASPRINTF
+_X_ATTRIBUTE_PRINTF(1, 0)
 char*
 vsprintf_alloc(const char *f, va_list args)
 {
@@ -92,6 +94,7 @@ vsprintf_alloc(const char *f, va_list args)
     return r;
 }
 #else
+_X_ATTRIBUTE_PRINTF(1, 0)
 char*
 vsprintf_alloc(const char *f, va_list args)
 {
