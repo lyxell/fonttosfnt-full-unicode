@@ -196,7 +196,7 @@ readFile(char *filename, FontPtr font)
         font->names[i].size = 2 * strlen(XVENDORNAMESHORT
 					 " converted bitmap font");
         font->names[i].value = makeUTF16(XVENDORNAMESHORT
-					 "X converted bitmap font");
+					 " converted bitmap font");
         i++;
 #ifdef __VENDORWEBSUPPORT__
         font->names[i].nid = 11;
