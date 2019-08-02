@@ -39,7 +39,7 @@ usage(void)
 {
     fprintf(stderr, "Usage:\n");
     fprintf(stderr, 
-            "fonttosfnt [ -v ] [ -c ] [ -b ] [ -r ] [ -g n ] [ -m n ] -o font.ttf "
+            "fonttosfnt [ -v ] [ -c ] [ -b ] [ -r ] [ -g n ] [ -m n ] -o font.otb "
             "[ -- ] font ...\n");
 }
 

@@ -1,14 +1,14 @@
 .\" $XFree86$
 .TH FONTTOSFNT 1 __vendorversion__
 .SH NAME
-fonttosfnt \- Wrap a bitmap font in a sfnt (TrueType) wrapper
+fonttosfnt \- Wrap a bitmap font in a sfnt (OpenType) wrapper
 .SH SYNOPSIS
 .B fonttosfnt
 [
 .I options
 ]
 .B \-o
-.I file.ttf
+.I file.otb
 [
 .B \-\-
 ]
