@@ -27,6 +27,7 @@ THE SOFTWARE.
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#include FT_MODULE_H
 #include FT_BDF_H
 #include "X11/Xos.h"
 #include "fonttosfnt.h"
@@ -36,6 +37,8 @@ THE SOFTWARE.
 #define CEIL2(x, y) (FLOOR2((x) + (y) - 1, (y)))
 #define FT_Pos_DOWN(x) (FLOOR2((x),64))
 #define FT_Pos_UP(x) (CEIL2((x), 64))
+#define MIN(x, y) (((x) <= (y)) ? (x) : (y))
+#define STREAM_FILE(stream) ((FILE*)stream->descriptor.pointer)
 
 static int ft_inited = 0;
 static FT_Library ft_library;
@@ -55,11 +58,45 @@ FT_Ensure_Inited(void)
     return 0;
 }
 
+static unsigned long
+forwardRead(FT_Stream stream, unsigned long offset, unsigned char *buffer,
+            unsigned long count) {
+    unsigned char skip_buffer[BUFSIZ];
+    unsigned long skip_count;
+    FILE *file = STREAM_FILE(stream);
+
+    /* We may be asked to skip forward, but by not doing so we increase our
+       chance of survival. */
+    if(count == 0)
+        return ferror(file) == 0 ? 0 : 1;
+
+    if(offset < stream->pos) {
+        fprintf(stderr, "Cannot move backward in input stream.\n");
+        return 0;
+    }
+    while((skip_count = MIN(BUFSIZ, offset - stream->pos))) {
+        if(fread(skip_buffer, sizeof(*skip_buffer), skip_count, file) <
+           skip_count)
+            return 0;
+        stream->pos += sizeof(*skip_buffer) * skip_count;
+    }
+
+    return (unsigned long)fread(buffer, sizeof(*buffer), count, file);
+}
+
+static void
+streamClose(FT_Stream stream) {
+    fclose(STREAM_FILE(stream));
+    stream->descriptor.pointer = NULL;
+    stream->size = 0;
+}
+
 int
 readFile(char *filename, FontPtr font)
 {
     int j, k, index;
     int rc;
+    FT_Open_Args input = { 0 };
     FT_Face face;
     StrikePtr strike;
     BitmapPtr bitmap;
@@ -74,9 +111,25 @@ readFile(char *filename, FontPtr font)
     if(rc != 0)
         return rc;
 
-    rc = FT_New_Face(ft_library, filename, 0, &face);
+    if(filename != NULL) {
+        input.pathname = filename;
+        input.flags = FT_OPEN_PATHNAME;
+    } else {
+        input.flags = FT_OPEN_STREAM | FT_OPEN_DRIVER;
+        input.driver = FT_Get_Module(ft_library, "bdf");
+        input.stream = calloc(1, sizeof(FT_StreamRec));
+        if(input.stream == NULL)
+            return -1;
+
+        input.stream->size = 0x7FFFFFFF;
+        input.stream->descriptor.pointer = stdin;
+        input.stream->read = forwardRead;
+        input.stream->close = streamClose;
+    }
+    rc = FT_Open_Face(ft_library, &input, 0, &face);
     if(rc != 0) {
-        fprintf(stderr, "Couldn't open face %s.\n", filename);
+        fprintf(stderr, "Couldn't open face %s.\n",
+                filename ? filename : "<stdin>");
         return -1;
     }
 
@@ -110,8 +163,8 @@ readFile(char *filename, FontPtr font)
 
     if(verbose_flag) {
         fprintf(stderr, "%s %s %s: %d sizes%s\n",
-                filename, face->family_name, face->style_name, 
-                face->num_fixed_sizes,
+                filename ? filename : "<stdin>",
+                face->family_name, face->style_name, face->num_fixed_sizes,
                 symbol ? " (symbol)" : "");
     }
 
@@ -309,6 +362,7 @@ readFile(char *filename, FontPtr font)
     }
 
     FT_Done_Face(face);
+    free(input.stream);
 
     j = 0;
     for(int i = 0; i < FONT_CODES; i++) {
