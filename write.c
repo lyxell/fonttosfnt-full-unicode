@@ -434,8 +434,8 @@ fixupChecksum(FILE *out, int full_length, int head_position)
 static int 
 writehead(FILE* out, FontPtr font)
 {
-    int time_hi;
-    unsigned time_lo;
+    int time_hi = 0;
+    unsigned time_lo = 0;
 
     macTime(&time_hi, &time_lo);
 
