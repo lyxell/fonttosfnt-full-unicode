@@ -213,10 +213,10 @@ macTime(int *hi, unsigned *lo)
     tm.tm_isdst = -1;
 
     macEpoch = mktime_gmt(&tm);
-    if(macEpoch < 0) return -1;
+    if(macEpoch == -1) return -1;
 
     current = time(NULL);
-    if(current < 0)
+    if(current == -1)
         return -1;
 
     if(current < macEpoch) {
