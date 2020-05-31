@@ -453,7 +453,7 @@ glyphMetrics(FontPtr font, int code,
         if(bitmap) {
             if(width_return)
                 *width_return = 
-                    (((float)bitmap->advanceWidth + 0.5) / strike->sizeX) *
+                    (((float)bitmap->advanceWidth) / strike->sizeX) *
                     TWO_SIXTEENTH;
             if(x_min_return)
                 *x_min_return =
@@ -463,17 +463,13 @@ glyphMetrics(FontPtr font, int code,
                 *y_min_return =
                     (((float)bitmap->horiBearingY - bitmap->height) 
                      / strike->sizeY) * TWO_SIXTEENTH;
-            /* For the following two, 0.9 instead of 0.5 might make
-               more sense.  However, using different rounding rules
-               for x_max and awidth causes problems for detecting
-               charcell fonts. */
             if(x_max_return)
                 *x_max_return =
-                    (((float)bitmap->horiBearingX + bitmap->width + 0.5)
+                    (((float)bitmap->horiBearingX + bitmap->width)
                      / strike->sizeX) * TWO_SIXTEENTH;
             if(y_max_return)
                 *y_max_return =
-                    (((float)bitmap->horiBearingY + 0.5) / strike->sizeY) *
+                    (((float)bitmap->horiBearingY) / strike->sizeY) *
                     TWO_SIXTEENTH;
             return 1;
         }
