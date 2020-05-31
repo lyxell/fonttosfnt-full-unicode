@@ -851,7 +851,7 @@ writehhea(FILE* out, FontPtr font)
     writeULONG(out, 0x00010000); /* version */
     writeSHORT(out, FONT_UNITS_CEIL(max_y)); /* ascender */
     writeSHORT(out, FONT_UNITS_FLOOR(min_y)); /* descender */
-    writeSHORT(out, FONT_UNITS(TWO_SIXTEENTH / 20)); /* lineGap */
+    writeSHORT(out, 0);		/* lineGap */
     writeUSHORT(out, FONT_UNITS(max_awidth)); /* advanceWidthMax */
     writeSHORT(out, FONT_UNITS_FLOOR(min_x)); /* minLeftSideBearing */
     writeSHORT(out, FONT_UNITS_FLOOR(min_x)); /* minRightSideBearing */
@@ -1017,9 +1017,8 @@ writeOS2(FILE* out, FontPtr font)
     writeUSHORT(out, 0x20);     /* usFirstCharIndex; */
     writeUSHORT(out, 0xFFFD);   /* usLastCharIndex; */
     writeUSHORT(out, FONT_UNITS_CEIL(max_y)); /* sTypoAscender; */
-    writeUSHORT(out, -FONT_UNITS_FLOOR(min_y)); /* sTypoDescender; */
-    writeUSHORT(out, FONT_UNITS(max_y - min_y));
-    /* sTypoLineGap; */
+    writeUSHORT(out, FONT_UNITS_FLOOR(min_y)); /* sTypoDescender; */
+    writeUSHORT(out, 0);	/* sTypoLineGap; */
     writeUSHORT(out, FONT_UNITS_CEIL(max_y)); /* usWinAscent; */
     writeUSHORT(out, -FONT_UNITS_FLOOR(min_y)); /* usWinDescent; */
     writeULONG(out, 3);         /* ulCodePageRange1; */
