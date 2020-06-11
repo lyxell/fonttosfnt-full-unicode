@@ -302,7 +302,7 @@ faceWeight(FT_Face face)
         else if(strcasecmp(prop.u.atom, "light") == 0)
             return 300;
         else if(strcasecmp(prop.u.atom, "medium") == 0)
-            return 500;
+            return 400;
         else if(strcasecmp(prop.u.atom, "semibold") == 0)
             return 600;
         else if(strcasecmp(prop.u.atom, "bold") == 0)
@@ -312,9 +312,9 @@ faceWeight(FT_Face face)
         else if(strcasecmp(prop.u.atom, "black") == 0)
             return 900;
         else
-            return 500;
+            return 400;
     } else
-        return 500;             /* for now */
+        return 400;             /* for now */
 }
 
 int
