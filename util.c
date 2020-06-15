@@ -280,8 +280,11 @@ faceFoundry(FT_Face face)
             return makeName("URW ");
         else if(strcasecmp(prop.u.atom, "y&y") == 0)
             return makeName("Y&Y ");
-        else
-            return makeName("UNKN");
+        else {
+	    char buf[5];
+	    snprintf(buf, sizeof(buf), "%-4s", prop.u.atom);
+            return makeName(buf);
+	}
     }
     /* For now */
     return makeName("UNKN");
