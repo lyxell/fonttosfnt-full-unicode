@@ -1013,7 +1013,14 @@ writeOS2(FILE* out, FontPtr font)
     writeULONG(out, 0x03FF);    /* ulUnicodeRange3; */
     writeULONG(out, 0U);        /* ulUnicodeRange4; */
     writeULONG(out, font->foundry); /* achVendID[4]; */
-    writeUSHORT(out, 0x0040);   /* fsSelection; */
+    i = 0;
+    if (font->flags & FACE_ITALIC)
+	i |= 1 << 0;
+    if (font->flags & FACE_BOLD)
+	i |= 1 << 5;
+    if (!i)
+	i |= 1 << 6;
+    writeUSHORT(out, i);	/* fsSelection; */
     writeUSHORT(out, 0x20);     /* usFirstCharIndex; */
     writeUSHORT(out, 0xFFFD);   /* usLastCharIndex; */
     writeUSHORT(out, FONT_UNITS_CEIL(max_y)); /* sTypoAscender; */
