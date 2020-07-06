@@ -29,6 +29,7 @@ THE SOFTWARE.
 #endif
 
 #include <stdarg.h>
+#include <math.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
@@ -69,17 +70,15 @@ extern int reencode_flag;
 
 #define UNITS_PER_EM 2048
 
-#define EPSILON 0.000000001
-#define FLOOR(x) ((x) < 0.0 ? -(int)(-(x)) : (x))
-#define CEIL(x) FLOOR((x) + 1.0 - EPSILON)
+#define UNDEF 0x80000000
 
 /* Convert a fixed-point value into FUnits */
 #define FONT_UNITS(x) \
-  FLOOR(((double)(x)) / TWO_SIXTEENTH * UNITS_PER_EM + 0.5)
+  round(((double)(x)) / TWO_SIXTEENTH * UNITS_PER_EM)
 #define FONT_UNITS_FLOOR(x) \
-  FLOOR(((double)(x)) / TWO_SIXTEENTH * UNITS_PER_EM)
+  floor(((double)(x)) / TWO_SIXTEENTH * UNITS_PER_EM)
 #define FONT_UNITS_CEIL(x) \
-  CEIL(((double)(x)) / TWO_SIXTEENTH * UNITS_PER_EM)
+  ceil(((double)(x)) / TWO_SIXTEENTH * UNITS_PER_EM)
 
 typedef struct _FontNameEntry {
     int nid;                    /* name id */
