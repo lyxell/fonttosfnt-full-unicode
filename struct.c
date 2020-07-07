@@ -42,8 +42,32 @@ makeFont(void)
     font->weight = 500;
     font->width = 5;
     font->italicAngle = 0;
-    font->underlinePosition = - TWO_SIXTEENTH;
-    font->underlineThickness = TWO_SIXTEENTH;
+    font->pxMetrics.height = UNDEF;
+    font->pxMetrics.maxX = UNDEF;
+    font->pxMetrics.minX = UNDEF;
+    font->pxMetrics.maxY = UNDEF;
+    font->pxMetrics.minY = UNDEF;
+    font->pxMetrics.xHeight = UNDEF;
+    font->pxMetrics.capHeight = UNDEF;
+    font->pxMetrics.maxAwidth = UNDEF;
+    font->pxMetrics.awidth = UNDEF;
+    font->pxMetrics.ascent = UNDEF;
+    font->pxMetrics.descent = UNDEF;
+    font->pxMetrics.underlinePosition = UNDEF;
+    font->pxMetrics.underlineThickness = UNDEF;
+    font->metrics.height = UNDEF;
+    font->metrics.maxX = UNDEF;
+    font->metrics.minX = UNDEF;
+    font->metrics.maxY = UNDEF;
+    font->metrics.minY = UNDEF;
+    font->metrics.xHeight = UNDEF;
+    font->metrics.capHeight = UNDEF;
+    font->metrics.maxAwidth = UNDEF;
+    font->metrics.awidth = UNDEF;
+    font->metrics.ascent = UNDEF;
+    font->metrics.descent = UNDEF;
+    font->metrics.underlinePosition = UNDEF;
+    font->metrics.underlineThickness = UNDEF;
     font->foundry = makeName("UNKN");
     font->strikes = NULL;
     return font;
@@ -480,31 +504,90 @@ glyphMetrics(FontPtr font, int code,
 }
 
 void
-fontMetrics(FontPtr font,
-            int *max_awidth_return,
-            int *min_x_return, int *min_y_return,
-            int *max_x_return, int *max_y_return)
+fontMetrics(FontPtr font, MetricsPtr metrics)
 {
     int i, rc;
-    int max_awidth = 0;
-    int min_x = 10000 * 65536, min_y = 10000 * 65536;
-    int max_x = -10000 * 65536, max_y = -10000 * 65536;
+    double sumAwidth = 0;
+    unsigned count = 0;
+
+    metrics->height = UNDEF /* TODO */;
+    metrics->maxAwidth = 0;
+    metrics->maxX = -10000 * TWO_SIXTEENTH;
+    metrics->maxY = -10000 * TWO_SIXTEENTH;
+    metrics->minX = 10000 * TWO_SIXTEENTH;
+    metrics->minY = 10000 * TWO_SIXTEENTH;
+    metrics->ascent = UNDEF;
+    metrics->descent = UNDEF;
+    metrics->underlinePosition = UNDEF;
+    metrics->underlineThickness = UNDEF;
+
     for(i = 0; i < FONT_CODES; i++) {
         int awidth, x0, y0, x1, y1;
         rc = glyphMetrics(font, i, &awidth, &x0, &y0, &x1, &y1);
         if(rc < 0)
             continue;
-        if(awidth > max_awidth)
-            max_awidth = awidth;
-        if(x0 < min_x) min_x = x0;
-        if(y0 < min_y) min_y = y0;
-        if(x1 > max_x) max_x = x1;
-        if(y1 > max_y) max_y = y1;
-    }
-    if(max_awidth_return) *max_awidth_return = max_awidth;
-    if(min_x_return) *min_x_return = min_x;
-    if(min_y_return) *min_y_return = min_y;
-    if(max_x_return) *max_x_return = max_x;
-    if(max_y_return) *max_y_return = max_y;
-}
 
+        if(awidth > metrics->maxAwidth) metrics->maxAwidth = awidth;
+        if(x0 < metrics->minX) metrics->minX = x0;
+        if(y0 < metrics->minY) metrics->minY = y0;
+        if(x1 > metrics->maxX) metrics->maxX = x1;
+        if(y1 > metrics->maxY) metrics->maxY = y1;
+
+	if(awidth > 0) {
+	    sumAwidth += awidth;
+	    count++;
+	}
+    }
+
+    if (count) metrics->awidth = sumAwidth / count;
+
+    if(font->pxMetrics.ascent == UNDEF)
+	metrics->ascent = metrics->maxY;
+    else
+	metrics->ascent =
+	    font->pxMetrics.ascent
+	    * TWO_SIXTEENTH / font->pxMetrics.height;
+
+    if(font->pxMetrics.descent == UNDEF)
+	metrics->descent = metrics->minY;
+    else
+	metrics->descent =
+	    font->pxMetrics.descent
+	    * TWO_SIXTEENTH / font->pxMetrics.height;
+
+    if(font->pxMetrics.capHeight == UNDEF)
+	/* TODO get ascent of letter 'X' - how to do lookups of ascii codes ? */
+	metrics->capHeight = metrics->ascent;
+    else
+	metrics->capHeight =
+	    font->pxMetrics.capHeight
+	    * TWO_SIXTEENTH / font->pxMetrics.height;
+
+    if(font->pxMetrics.xHeight == UNDEF)
+	/* TODO get ascent of letter 'x' - how to do lookups of ascii codes ? */
+	metrics->xHeight = metrics->ascent * 2 / 3;
+    else
+	metrics->xHeight =
+	    font->pxMetrics.xHeight
+	    * TWO_SIXTEENTH / font->pxMetrics.height;
+
+    if(font->pxMetrics.underlinePosition == UNDEF)
+	metrics->underlinePosition = - metrics->descent * 2;
+    else
+	metrics->underlinePosition =
+	    font->pxMetrics.underlinePosition
+	    * TWO_SIXTEENTH / font->pxMetrics.height;
+
+    if(font->pxMetrics.underlineThickness == UNDEF)
+	/* TODO: this could be refined according to
+	 * X Logical Font Description Conventions (xlfd.txt)
+	 * by also considering the font weight. */
+	/* make sure thickness is at least one pixel. */
+	metrics->underlineThickness =
+	    TWO_SIXTEENTH
+	    / (font->pxMetrics.height < 9 ? font->pxMetrics.height : 9);
+    else
+	metrics->underlineThickness =
+	    font->pxMetrics.underlineThickness
+	    * TWO_SIXTEENTH / font->pxMetrics.height;
+}

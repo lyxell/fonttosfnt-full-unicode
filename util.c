@@ -391,6 +391,19 @@ faceFlags(FT_Face face)
     return flags;
 }
 
+int
+faceIntProp(FT_Face face, const char *name)
+{
+    int rc;
+    BDF_PropertyRec prop;
+
+    rc = FT_Get_BDF_Property(face, name, &prop);
+    if(rc == 0 && prop.type == BDF_PROPERTY_TYPE_INTEGER)
+	return prop.u.integer;
+    else
+	return UNDEF;
+}
+
 char *
 faceEncoding(FT_Face face)
 {

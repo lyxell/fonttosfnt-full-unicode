@@ -258,30 +258,6 @@ readFile(char *filename, FontPtr font)
         i++;
 #endif
         font->numNames = i;
-
-        font->flags = faceFlags(face) | (symbol ? FACE_SYMBOL : 0);
-        font->weight = faceWeight(face);
-        font->width = faceWidth(face);
-        font->foundry = faceFoundry(face);
-        font->italicAngle = faceItalicAngle(face);
-
-        rc = FT_Get_BDF_Property(face, "UNDERLINE_POSITION", &prop);
-        if(rc == 0 && prop.type == BDF_PROPERTY_TYPE_INTEGER)
-            font->underlinePosition = 
-                (double)prop.u.integer / face->available_sizes[0].height *
-                TWO_SIXTEENTH;
-        else
-            font->underlinePosition =
-                - 1.5 / face->available_sizes[0].height * TWO_SIXTEENTH;
-
-        rc = FT_Get_BDF_Property(face, "UNDERLINE_THICKNESS", &prop);
-        if(rc == 0 && prop.type == BDF_PROPERTY_TYPE_INTEGER)
-            font->underlineThickness = 
-                (double)prop.u.integer / face->available_sizes[0].height *
-                TWO_SIXTEENTH;
-        else
-            font->underlineThickness =
-                1.0 / face->available_sizes[0].height * TWO_SIXTEENTH;
     }
 
     if(face->num_fixed_sizes == 0) {
@@ -303,6 +279,19 @@ readFile(char *filename, FontPtr font)
         fprintf(stderr, "Couldn't select character map: %x.\n", rc);
         return -1;
     }
+
+    font->flags = faceFlags(face) | (symbol ? FACE_SYMBOL : 0);
+    font->weight = faceWeight(face);
+    font->width = faceWidth(face);
+    font->foundry = faceFoundry(face);
+    font->italicAngle = faceItalicAngle(face);
+    font->pxMetrics.height = face->available_sizes[0].height;
+    font->pxMetrics.xHeight = faceIntProp(face, "X_HEIGHT");
+    font->pxMetrics.capHeight = faceIntProp(face, "CAP_HEIGHT");
+    font->pxMetrics.ascent = faceIntProp(face, "FONT_ASCENT");
+    font->pxMetrics.descent = faceIntProp(face, "FONT_DESCENT");
+    font->pxMetrics.underlinePosition = faceIntProp(face, "UNDERLINE_POSITION");
+    font->pxMetrics.underlineThickness = faceIntProp(face, "UNDERLINE_THICKNESS");
 
     for(int i = 0; i < face->num_fixed_sizes; i++) {
         if(verbose_flag)

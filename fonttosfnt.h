@@ -86,6 +86,22 @@ typedef struct _FontNameEntry {
     char *value;
 } FontNameEntryRec, *FontNameEntryPtr;
 
+typedef struct _Metrics {
+    int height;
+    int maxX;
+    int minX;
+    int maxY;
+    int minY;
+    int xHeight;
+    int capHeight;
+    int maxAwidth;
+    int awidth;
+    int ascent;
+    int descent;
+    int underlinePosition;
+    int underlineThickness;
+} MetricsRec, *MetricsPtr;
+
 typedef struct _Font {
     int numNames;
     struct _FontNameEntry *names;
@@ -93,8 +109,8 @@ typedef struct _Font {
     int weight;                 /* as in the OS/2 table */
     int width;                  /* as in the OS/2 table */
     int italicAngle;            /* degrees c-clockwise from the vertical */
-    int underlinePosition;
-    int underlineThickness;
+    MetricsRec pxMetrics;
+    MetricsRec metrics;
     unsigned foundry;
     struct _Strike *strikes;
 } FontRec, *FontPtr;
@@ -153,7 +169,7 @@ int findCode(CmapPtr, int);
 BitmapPtr strikeBitmapIndex(StrikePtr, CmapPtr, int);
 void strikeMetrics(StrikePtr, int*, int*, int*, int*, int*);
 int glyphMetrics(FontPtr, int, int*, int*, int*, int*, int*);
-void fontMetrics(FontPtr, int*, int*, int*, int*, int*);
+void fontMetrics(FontPtr, MetricsPtr);
 int maxIndex(CmapPtr);
 
 int readFile(char *filename, FontPtr);
@@ -173,6 +189,7 @@ int macTime(int *, unsigned *);
 unsigned faceFoundry(FT_Face);
 char *faceEncoding(FT_Face);
 int faceFlags(FT_Face);
+int faceIntProp(FT_Face, const char *);
 int faceWeight(FT_Face);
 int faceWidth(FT_Face);
 int faceItalicAngle(FT_Face);
