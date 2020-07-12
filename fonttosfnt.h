@@ -167,7 +167,7 @@ CmapPtr makeCmap(FontPtr);
 int findIndex(CmapPtr, int);
 int findCode(CmapPtr, int);
 BitmapPtr strikeBitmapIndex(StrikePtr, CmapPtr, int);
-void strikeMetrics(StrikePtr, int*, int*, int*, int*, int*);
+int strikeMaxWidth(StrikePtr);
 int glyphMetrics(FontPtr, int, int*, int*, int*, int*, int*);
 void fontMetrics(FontPtr, MetricsPtr);
 int maxIndex(CmapPtr);

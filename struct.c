@@ -425,19 +425,12 @@ strikeBitmapIndex(StrikePtr strike, CmapPtr cmap, int index)
     return STRIKE_BITMAP(strike, code);
 }
 
-void
-strikeMetrics(StrikePtr strike,
-              int *width_max_return, 
-              int *x_min_return, int *y_min_return,
-              int *x_max_return, int *y_max_return)
+int
+strikeMaxWidth(StrikePtr strike)
 {
     BitmapPtr bitmap;
     int i;
     int width_max = 0;
-    int x_min = 10000;
-    int y_min = 10000;
-    int x_max = -10000;
-    int y_max = -10000;
 
     for(i = 0; i < FONT_CODES; i++) {
         bitmap = STRIKE_BITMAP(strike, i);
@@ -445,21 +438,9 @@ strikeMetrics(StrikePtr strike,
             continue;
         if(bitmap->advanceWidth > width_max)
             width_max = bitmap->advanceWidth;
-        if(bitmap->horiBearingX < x_min)
-            x_min = bitmap->horiBearingX;
-        if(bitmap->horiBearingY > y_max)
-            y_max = bitmap->horiBearingY;
-        if(bitmap->horiBearingX + bitmap->width > x_max)
-            x_max = bitmap->horiBearingX + bitmap->width;
-        if(bitmap->horiBearingY - bitmap->height < y_min)
-            y_min = bitmap->horiBearingY - bitmap->height;
     }
 
-    if(width_max_return) *width_max_return = width_max;
-    if(x_min_return) *x_min_return = x_min;
-    if(y_min_return) *y_min_return = y_min;
-    if(x_max_return) *x_max_return = x_max;
-    if(y_max_return) *y_max_return = y_max;
+    return width_max;
 }
 
 int

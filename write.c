@@ -550,27 +550,6 @@ writeEBDT(FILE* out, FontPtr font)
     return 0;
 }
 
-static int
-writeSbitLineMetrics(FILE *out, StrikePtr strike, int num, int den)
-{
-    int width_max, x_min, y_min, x_max, y_max;
-    strikeMetrics(strike, &width_max, &x_min, &y_min, &x_max, &y_max);
-
-    writeCHAR(out, y_max);      /* ascender */
-    writeCHAR(out, y_min);      /* descender */
-    writeBYTE(out, width_max);  /* widthMax */
-    writeCHAR(out, num);          /* caretSlopeNumerator */
-    writeCHAR(out, den);          /* caretSlopeDenominator */
-    writeCHAR(out, 0);          /* caretOffset */
-    writeCHAR(out, 0);          /* minOriginSB */
-    writeCHAR(out, 0);          /* minAdvanceSB */
-    writeCHAR(out, 0);          /* maxBeforeBL */
-    writeCHAR(out, 0);          /* minAfterBL */
-    writeCHAR(out, 0);          /* pad1 */
-    writeCHAR(out, 0);          /* pad2 */
-    return 0;
-}
-
 static int 
 writeEBLC(FILE* out, FontPtr font)
 {
@@ -600,8 +579,20 @@ writeEBLC(FILE* out, FontPtr font)
         writeULONG(out, 0xDEADFACE); /* indexTablesSize */
         writeULONG(out, 0xDEADFACE); /* numberOfIndexSubTables */
         writeULONG(out, 0);     /* colorRef */
-        writeSbitLineMetrics(out, strike, num, den);
-        writeSbitLineMetrics(out, strike, num, den);
+	for (i = 0; i <= 1; i++) {
+	  writeCHAR(out, font->pxMetrics.ascent);	/* ascender */
+	  writeCHAR(out, -font->pxMetrics.descent);	/* descender */
+	  writeBYTE(out, strikeMaxWidth(strike));	/* widthMax */
+	  writeCHAR(out, num);				/* caretSlopeNumerator */
+	  writeCHAR(out, den);				/* caretSlopeDenominator */
+	  writeCHAR(out, 0);				/* caretOffset */
+	  writeCHAR(out, 0);				/* minOriginSB */
+	  writeCHAR(out, 0);				/* minAdvanceSB */
+	  writeCHAR(out, 0);				/* maxBeforeBL */
+	  writeCHAR(out, 0);				/* minAfterBL */
+	  writeCHAR(out, 0);				/* pad1 */
+	  writeCHAR(out, 0);				/* pad2 */
+	}
         writeUSHORT(out, 0);    /* startGlyphIndex */
         writeUSHORT(out, 0xFFFD); /* endGlyphIndex */
         writeBYTE(out, strike->sizeX); /* ppemX */
@@ -649,9 +640,6 @@ writeEBLC(FILE* out, FontPtr font)
     /* actual indexSubTables */
     strike = font->strikes;
     while(strike) {
-        int vertAdvance, y_min, y_max;
-        strikeMetrics(strike, NULL, NULL, &y_min, NULL, &y_max);
-        vertAdvance = y_max - y_min;
         table = strike->indexSubTables;
         while(table) {
             int location;
@@ -719,7 +707,7 @@ writeEBLC(FILE* out, FontPtr font)
                 writeBYTE(out, bitmap->advanceWidth);
                 writeCHAR(out, bitmap->horiBearingX); /* vertBearingX */
                 writeCHAR(out, bitmap->horiBearingY); /* vertBearingY */
-                writeBYTE(out, vertAdvance); /* vertAdvance */
+                writeBYTE(out, font->metrics.maxAwidth); /* vertAdvance */
             } else {
                 for(i = table->firstGlyphIndex; 
                     i <= table->lastGlyphIndex; i++) {
