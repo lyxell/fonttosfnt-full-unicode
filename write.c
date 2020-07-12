@@ -980,7 +980,7 @@ writeOS2(FILE* out, FontPtr font)
 {
     int i;
 
-    writeUSHORT(out, 0x0001);
+    writeUSHORT(out, 5); /* version */
     writeSHORT(out, FONT_UNITS(font->metrics.awidth)); /* xAvgCharWidth; */
     writeUSHORT(out, font->weight);  /* usWeightClass; */
     writeUSHORT(out, font->width); /* usWidthClass; */
@@ -1011,16 +1011,31 @@ writeOS2(FILE* out, FontPtr font)
 	i |= 1 << 5;
     if (!i)
 	i |= 1 << 6;
+#ifndef NO_TYPO_METRICS
+    i |= 1 << 7; /* USE_TYPO_METRICS instead usWin metrics for line spacing. */
+#endif
     writeUSHORT(out, i);	/* fsSelection; */
     writeUSHORT(out, 0x20);     /* usFirstCharIndex; */
     writeUSHORT(out, 0xFFFD);   /* usLastCharIndex; */
     writeUSHORT(out, FONT_UNITS_CEIL(font->metrics.ascent)); /* sTypoAscender; */
     writeUSHORT(out, FONT_UNITS_FLOOR(font->metrics.descent)); /* sTypoDescender; */
     writeUSHORT(out, 0);	/* sTypoLineGap; */
+#ifdef NO_TYPO_METRICS
+    writeUSHORT(out, FONT_UNITS_CEIL(font->metrics.ascent)); /* usWinAscent; */
+    writeUSHORT(out, FONT_UNITS_FLOOR(font->metrics.descent)); /* usWinDescent; */
+#else
     writeUSHORT(out, FONT_UNITS_CEIL(font->metrics.maxY)); /* usWinAscent; */
     writeUSHORT(out, -FONT_UNITS_FLOOR(font->metrics.minY)); /* usWinDescent; */
-    writeULONG(out, 3);         /* ulCodePageRange1; */
-    writeULONG(out, 0);         /* ulCodePageRange2; */
+#endif
+    writeULONG(out, 3);						/* ulCodePageRange1; */
+    writeULONG(out, 0);         				/* ulCodePageRange2; */
+    writeSHORT(out, FONT_UNITS_CEIL(font->metrics.xHeight));	/* sxHeight; */
+    writeSHORT(out, FONT_UNITS_CEIL(font->metrics.capHeight));	/* sCapHeight; */
+    writeUSHORT(out, 0); 					/* usDefaultChar; */
+    writeUSHORT(out, 20); 					/* usBreakChar; */
+    writeUSHORT(out, 0); 					/* usMaxContext; */
+    writeUSHORT(out, 0); 					/* usLowerOpticalPointSize; */
+    writeUSHORT(out, 0xffff); 					/* usUpperOpticalPointSize; */
     return 0;
 }
 
