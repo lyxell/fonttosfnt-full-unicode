@@ -29,6 +29,7 @@ THE SOFTWARE.
 #include FT_FREETYPE_H
 #include FT_MODULE_H
 #include FT_BDF_H
+#include FT_FONT_FORMATS_H
 #include "X11/Xos.h"
 #include "fonttosfnt.h"
 #include "X11/fonts/fontenc.h"
@@ -102,7 +103,7 @@ readFile(char *filename, FontPtr font)
     BitmapPtr bitmap;
     int symbol = 0;
     int force_unicode = 1;
-    char *encoding_name = NULL;
+    const char *encoding_name, *file_format;
     FontMapPtr mapping = NULL;
     FontMapReversePtr reverse = NULL;
     
@@ -132,6 +133,15 @@ readFile(char *filename, FontPtr font)
                 filename ? filename : "<stdin>");
         return -1;
     }
+
+    file_format = FT_Get_Font_Format(face);
+    if(strcmp(file_format, "BDF") != 0)
+	fprintf(stderr,
+		"font file %s is of format %s.\n"
+		"It's recommended to convert directly from a BDF font.\n"
+		"Some font properties may get lost when converting via a PCF font.\n",
+		filename ? filename : "<stdin>",
+		file_format);
 
     /* FreeType will insist on encodings which are simple subsets of unicode
      * to be read as unicode regardless of what we call them. */
