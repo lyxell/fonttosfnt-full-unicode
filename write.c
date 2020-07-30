@@ -942,7 +942,7 @@ writehhea(FILE* out, FontPtr font)
 
     writeULONG(out, 0x00010000); /* version */
     writeSHORT(out, FONT_UNITS_CEIL(font->metrics.ascent)); /* ascender */
-    writeSHORT(out, 0-FONT_UNITS_CEIL(font->metrics.descent)); /* descender */
+    writeSHORT(out, -FONT_UNITS_CEIL(font->metrics.descent)); /* descender */
     writeSHORT(out, 0);		/* lineGap */
     writeUSHORT(out, FONT_UNITS(font->metrics.maxAwidth)); /* advanceWidthMax */
     /* TODO: the next three are not calculated according to spec, are they ?
@@ -1121,11 +1121,11 @@ writeOS2(FILE* out, FontPtr font)
     writeUSHORT(out, 0x20);     /* usFirstCharIndex; */
     writeUSHORT(out, 0xFFFD);   /* usLastCharIndex; */
     writeUSHORT(out, FONT_UNITS_CEIL(font->metrics.ascent)); /* sTypoAscender; */
-    writeUSHORT(out, FONT_UNITS_FLOOR(font->metrics.descent)); /* sTypoDescender; */
+    writeUSHORT(out, -FONT_UNITS_CEIL(font->metrics.descent)); /* sTypoDescender; */
     writeUSHORT(out, 0);	/* sTypoLineGap; */
 #ifdef NO_TYPO_METRICS
     writeUSHORT(out, FONT_UNITS_CEIL(font->metrics.ascent)); /* usWinAscent; */
-    writeUSHORT(out, FONT_UNITS_FLOOR(font->metrics.descent)); /* usWinDescent; */
+    writeUSHORT(out, FONT_UNITS_CEIL(font->metrics.descent)); /* usWinDescent; */
 #else
     writeUSHORT(out, FONT_UNITS_CEIL(font->metrics.maxY)); /* usWinAscent; */
     writeUSHORT(out, -FONT_UNITS_FLOOR(font->metrics.minY)); /* usWinDescent; */
