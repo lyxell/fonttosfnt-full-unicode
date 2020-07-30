@@ -169,7 +169,7 @@ int findCode(CmapPtr, int);
 BitmapPtr strikeBitmapIndex(StrikePtr, CmapPtr, int);
 int strikeMaxWidth(StrikePtr);
 int glyphMetrics(FontPtr, int, int*, int*, int*, int*, int*);
-void fontMetrics(FontPtr, MetricsPtr);
+void fontMetrics(FontPtr);
 int maxIndex(CmapPtr);
 
 int readFile(char *filename, FontPtr);

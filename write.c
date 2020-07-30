@@ -205,6 +205,109 @@ readULONG(FILE *out)
     return ntohl(val);
 }
 
+void
+fontMetrics(FontPtr font)
+{
+    int i, rc;
+    double sumAwidth = 0;
+    unsigned count = 0;
+
+    font->metrics.maxAwidth = 0;
+    font->metrics.maxX = -10000 * TWO_SIXTEENTH;
+    font->metrics.maxY = -10000 * TWO_SIXTEENTH;
+    font->metrics.minX = 10000 * TWO_SIXTEENTH;
+    font->metrics.minY = 10000 * TWO_SIXTEENTH;
+
+    for(i = 0; i < FONT_CODES; i++) {
+        int awidth, x0, y0, x1, y1;
+        rc = glyphMetrics(font, i, &awidth, &x0, &y0, &x1, &y1);
+        if(rc < 0)
+            continue;
+
+        if(awidth > font->metrics.maxAwidth) font->metrics.maxAwidth = awidth;
+        if(x0 < font->metrics.minX) font->metrics.minX = x0;
+        if(y0 < font->metrics.minY) font->metrics.minY = y0;
+        if(x1 > font->metrics.maxX) font->metrics.maxX = x1;
+        if(y1 > font->metrics.maxY) font->metrics.maxY = y1;
+
+	if(awidth > 0) {
+	    sumAwidth += awidth;
+	    count++;
+	}
+    }
+
+    if (count) font->metrics.awidth = sumAwidth / count;
+
+    font->metrics.height = UNDEF /* TODO */;
+
+    if(font->pxMetrics.ascent == UNDEF) {
+	font->metrics.ascent = font->metrics.maxY;
+	font->pxMetrics.ascent =
+	    font->metrics.ascent
+	    * font->pxMetrics.height / TWO_SIXTEENTH;
+    }
+    else
+	font->metrics.ascent =
+	    font->pxMetrics.ascent
+	    * TWO_SIXTEENTH / font->pxMetrics.height;
+
+    if(font->pxMetrics.descent == UNDEF) {
+	font->metrics.descent = font->metrics.minY;
+	font->pxMetrics.descent =
+	    font->metrics.descent
+	    * font->pxMetrics.height / TWO_SIXTEENTH;
+    }
+    else
+	font->metrics.descent =
+	    font->pxMetrics.descent
+	    * TWO_SIXTEENTH / font->pxMetrics.height;
+
+    fprintf(stderr, "ascent %d ascentpx %d descent %d descentpx %d\n",
+	    font->metrics.ascent,
+	    font->pxMetrics.ascent,
+	    font->metrics.descent,
+	    font->pxMetrics.descent);
+
+    if(font->pxMetrics.capHeight == UNDEF)
+	/* TODO get ascent of letter 'X' - how to do lookups of ascii codes ? */
+	font->metrics.capHeight = font->metrics.ascent;
+    else
+	font->metrics.capHeight =
+	    font->pxMetrics.capHeight
+	    * TWO_SIXTEENTH / font->pxMetrics.height;
+
+    if(font->pxMetrics.xHeight == UNDEF)
+	/* TODO get ascent of letter 'x' - how to do lookups of ascii codes ? */
+	font->metrics.xHeight = font->metrics.ascent * 2 / 3;
+    else
+	font->metrics.xHeight =
+	    font->pxMetrics.xHeight
+	    * TWO_SIXTEENTH / font->pxMetrics.height;
+
+    if(font->pxMetrics.underlinePosition == UNDEF)
+	font->metrics.underlinePosition = - font->metrics.descent * 2;
+    else {
+	fprintf(stderr, "Setting underlinePosition. pxMetrics.underlinePosition is %d. height is %d\n",
+		font->pxMetrics.underlinePosition, font->pxMetrics.height);
+	font->metrics.underlinePosition =
+	    font->pxMetrics.underlinePosition
+	    * TWO_SIXTEENTH / font->pxMetrics.height;
+    }
+
+    if(font->pxMetrics.underlineThickness == UNDEF)
+	/* TODO: this could be refined according to
+	 * X Logical Font Description Conventions (xlfd.txt)
+	 * by also considering the font weight. */
+	/* make sure thickness is at least one pixel. */
+	font->metrics.underlineThickness =
+	    TWO_SIXTEENTH
+	    / (font->pxMetrics.height < 9 ? font->pxMetrics.height : 9);
+    else
+	font->metrics.underlineThickness =
+	    font->pxMetrics.underlineThickness
+	    * TWO_SIXTEENTH / font->pxMetrics.height;
+}
+
 int 
 writeFile(char *filename, FontPtr font)
 {
@@ -218,8 +321,6 @@ writeFile(char *filename, FontPtr font)
     int offset[15], length[15];
     StrikePtr strike;
 
-    fontMetrics(font, &font->metrics);
-
     out = fopen(filename, "wb+");
     if(out == NULL)
         return -1;
@@ -229,6 +330,8 @@ writeFile(char *filename, FontPtr font)
         fprintf(stderr, "Couldn't build cmap.\n");
         return -1;
     }
+
+    fontMetrics(font);
 
     write_error_occurred = 0;
     read_error_occurred = 0;
