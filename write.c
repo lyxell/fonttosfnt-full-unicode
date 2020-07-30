@@ -262,23 +262,23 @@ fontMetrics(FontPtr font)
 	    font->pxMetrics.descent
 	    * TWO_SIXTEENTH / font->pxMetrics.height;
 
-    fprintf(stderr, "ascent %d ascentpx %d descent %d descentpx %d\n",
-	    font->metrics.ascent,
-	    font->pxMetrics.ascent,
-	    font->metrics.descent,
-	    font->pxMetrics.descent);
-
-    if(font->pxMetrics.capHeight == UNDEF)
-	/* TODO get ascent of letter 'X' - how to do lookups of ascii codes ? */
-	font->metrics.capHeight = font->metrics.ascent;
+    if(font->pxMetrics.capHeight == UNDEF) {
+	if(glyphMetrics(font, 'X', NULL, NULL, NULL, NULL, &font->metrics.capHeight) != 1)
+	    font->metrics.capHeight = font->metrics.ascent;
+	font->pxMetrics.capHeight =
+	    font->metrics.capHeight * font->pxMetrics.height / TWO_SIXTEENTH;
+    }
     else
 	font->metrics.capHeight =
 	    font->pxMetrics.capHeight
 	    * TWO_SIXTEENTH / font->pxMetrics.height;
 
-    if(font->pxMetrics.xHeight == UNDEF)
-	/* TODO get ascent of letter 'x' - how to do lookups of ascii codes ? */
-	font->metrics.xHeight = font->metrics.ascent * 2 / 3;
+    if(font->pxMetrics.xHeight == UNDEF) {
+	if(glyphMetrics(font, 'x', NULL, NULL, NULL, NULL, &font->metrics.xHeight) != 1)
+	    font->metrics.xHeight = font->metrics.capHeight * 2 / 3;
+	font->pxMetrics.xHeight =
+	    font->metrics.xHeight * font->pxMetrics.height / TWO_SIXTEENTH;
+    }
     else
 	font->metrics.xHeight =
 	    font->pxMetrics.xHeight
@@ -295,10 +295,10 @@ fontMetrics(FontPtr font)
     }
 
     if(font->pxMetrics.underlineThickness == UNDEF)
+	/* make sure thickness is at least one pixel. */
 	/* TODO: this could be refined according to
 	 * X Logical Font Description Conventions (xlfd.txt)
 	 * by also considering the font weight. */
-	/* make sure thickness is at least one pixel. */
 	font->metrics.underlineThickness =
 	    TWO_SIXTEENTH
 	    / (font->pxMetrics.height < 9 ? font->pxMetrics.height : 9);
