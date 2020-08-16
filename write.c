@@ -238,7 +238,15 @@ fontMetrics(FontPtr font)
 
     if (count) font->metrics.awidth = sumAwidth / count;
 
-    font->metrics.height = UNDEF /* TODO */;
+    font->metrics.height = TWO_SIXTEENTH;
+
+    if(font->pxMetrics.size == UNDEF) {
+	font->pxMetrics.size = font->pxMetrics.height;
+	font->metrics.size = font->metrics.height;
+    }
+
+    font->metrics.size = font->pxMetrics.size
+	    * TWO_SIXTEENTH / font->pxMetrics.height;
 
     if(font->pxMetrics.ascent == UNDEF) {
 	font->metrics.ascent = font->metrics.maxY;
@@ -943,7 +951,7 @@ writehhea(FILE* out, FontPtr font)
     writeULONG(out, 0x00010000); /* version */
     writeSHORT(out, FONT_UNITS_CEIL(font->metrics.ascent)); /* ascender */
     writeSHORT(out, -FONT_UNITS_CEIL(font->metrics.descent)); /* descender */
-    writeSHORT(out, 0);		/* lineGap */
+    writeSHORT(out, FONT_UNITS(font->metrics.size - font->metrics.ascent - font->metrics.descent));	/* lineGap */
     writeUSHORT(out, FONT_UNITS(font->metrics.maxAwidth)); /* advanceWidthMax */
     /* TODO: the next three are not calculated according to spec, are they ?
      * https://docs.microsoft.com/en-us/typography/opentype/spec/hhea */
@@ -1121,8 +1129,8 @@ writeOS2(FILE* out, FontPtr font)
     writeUSHORT(out, 0x20);     /* usFirstCharIndex; */
     writeUSHORT(out, 0xFFFD);   /* usLastCharIndex; */
     writeUSHORT(out, FONT_UNITS_CEIL(font->metrics.ascent)); /* sTypoAscender; */
-    writeUSHORT(out, -FONT_UNITS_CEIL(font->metrics.descent)); /* sTypoDescender; */
-    writeUSHORT(out, 0);	/* sTypoLineGap; */
+    writeSHORT(out, -FONT_UNITS_CEIL(font->metrics.descent)); /* sTypoDescender; */
+    writeSHORT(out, FONT_UNITS(font->metrics.size - font->metrics.ascent - font->metrics.descent));	/* sTypoLineGap */
 #ifdef NO_TYPO_METRICS
     writeUSHORT(out, FONT_UNITS_CEIL(font->metrics.ascent)); /* usWinAscent; */
     writeUSHORT(out, FONT_UNITS_CEIL(font->metrics.descent)); /* usWinDescent; */

@@ -296,6 +296,7 @@ readFile(char *filename, FontPtr font)
     font->foundry = faceFoundry(face);
     font->italicAngle = faceItalicAngle(face);
     font->pxMetrics.height = face->available_sizes[0].height;
+    font->pxMetrics.size = faceIntProp(face, "PIXEL_SIZE");
     font->pxMetrics.xHeight = faceIntProp(face, "X_HEIGHT");
     font->pxMetrics.capHeight = faceIntProp(face, "CAP_HEIGHT");
     font->pxMetrics.ascent = faceIntProp(face, "FONT_ASCENT");

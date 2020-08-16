@@ -88,6 +88,7 @@ typedef struct _FontNameEntry {
 
 typedef struct _Metrics {
     int height;
+    int size;
     int maxX;
     int minX;
     int maxY;
