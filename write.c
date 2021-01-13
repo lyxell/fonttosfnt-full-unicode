@@ -372,26 +372,46 @@ writeFile(char *filename, FontPtr font)
     i = 0;
     tables[i] = makeName("EBDT"); table_writers[i] = writeEBDT; i++;
     tables[i] = makeName("EBLC"); table_writers[i] = writeEBLC; i++;
-    tables[i] = makeName("OS/2"); table_writers[i] = writeOS2; i++;
-    tables[i] = makeName("PCLT"); table_writers[i] = writePCLT; i++;
+    /*
+        Full unicode patch, skip these tables.
+
+        tables[i] = makeName("OS/2"); table_writers[i] = writeOS2; i++;
+        tables[i] = makeName("PCLT"); table_writers[i] = writePCLT; i++;
+    */
     tables[i] = makeName("cmap"); table_writers[i] = writecmap; i++;
+    /*
+        Full unicode patch, skip this table.
+
     if(numglyphs >= 1) {
         tables[i] = makeName("glyf");
         table_writers[i] = writeglyf; i++;
     }
+    */
     tables[i] = makeName("head"); table_writers[i] = writehead; i++;
     tables[i] = makeName("hhea"); table_writers[i] = writehhea; i++;
+
     if(nummetrics >= 1) {
         tables[i] = makeName("hmtx"); 
         table_writers[i] = writehmtx; i++;
     }
+
+    /*
+        Full unicode patch, skip this table.
+
     if(numglyphs >= 1) {
         tables[i] = makeName("loca"); 
         table_writers[i] = writeloca; i++;
     }
+    */
+
     tables[i] = makeName("maxp"); table_writers[i] = writemaxp; i++;
+
+    /*
+        Full unicode patch, skip these tables.
+
     tables[i] = makeName("name"); table_writers[i] = writename; i++;
     tables[i] = makeName("post"); table_writers[i] = writepost; i++;
+    */
 
     rc = writeDir(out, font, i, tables);
     if(rc < 0)
@@ -853,80 +873,51 @@ writeEBLC(FILE* out, FontPtr font)
 static int 
 writecmap(FILE* out, FontPtr font)
 {
-    int rc, cmap_start, cmap_end;
+    int rc, cmap_start, cmap_end, subtable_header_start;
     CmapPtr cmap;
     int segcount;
 
     segcount = 0;
     cmap = current_cmap;
-    while(cmap) {
+    while (cmap) {
         segcount++;
         cmap = cmap->next;
     }
-
-    segcount++;                 /* dummy segment to end table */
 
     cmap_start = ftell(out);
 
     writeUSHORT(out, 0);        /* version */
     writeUSHORT(out, 1);        /* number of encoding tables */
-    writeUSHORT(out, 3);        /* platform ID */
-    writeUSHORT(out, (font->flags & FACE_SYMBOL) ? 0 : 1);
-                                /* encoding ID */
+    writeUSHORT(out, 3);        /* platform ID = Windows */
+    writeUSHORT(out, 10);       /* encoding ID = Full unicode */
     writeULONG(out, 12);        /* offset to beginning of subtable */
 
+    subtable_header_start = ftell(out);
+
     /* subtable */
-    writeUSHORT(out, 4);        /* format */
-    writeUSHORT(out, 0xDEAD);   /* length */
-    writeUSHORT(out, 0);        /* language */
-    /* How baroque can you get? */
-    writeUSHORT(out, segcount * 2); /* segCountX2 */
-    writeUSHORT(out, 2 * two_log2_floor(segcount)); /* searchRange */
-    writeUSHORT(out, 1 + log2_floor(segcount));   /* entrySelector */
-    writeUSHORT(out, 2 * (segcount - two_log2_floor(segcount)));   
-                                /* rangeShift */
+    writeUSHORT(out, 12);       /* format = 12, segmented coverage */
+    writeUSHORT(out, 0);        /* Reserved */
+
+    writeULONG(out, 0xDEAD);    /* length */
+    writeULONG(out, 0);         /* language */
+    writeULONG(out, segcount);  /* numGroups = segcount */
 
     cmap = current_cmap;
     while(cmap) {
-        writeUSHORT(out, cmap->endCode);
+        writeULONG(out, cmap->startCode);
+        writeULONG(out, cmap->endCode);
+        writeULONG(out, cmap->index);
         cmap = cmap->next;
     }
-    writeUSHORT(out, 0xFFFF);
-
-    writeUSHORT(out, 0);        /* reservedPad */
-
-    cmap = current_cmap;
-    while(cmap) {
-        writeUSHORT(out, cmap->startCode);
-        cmap = cmap->next;
-    }
-    writeUSHORT(out, 0xFFFF);
-
-    /* idDelta */
-    cmap = current_cmap;
-    while(cmap) {
-        writeUSHORT(out, (cmap->index - cmap->startCode) & 0xFFFF);
-        cmap = cmap->next;
-    }
-    writeUSHORT(out, 1);
-
-    /* idRangeOffset */
-    cmap = current_cmap;
-    while(cmap) {
-        writeUSHORT(out, 0);
-        cmap = cmap->next;
-    }
-    writeUSHORT(out, 0);
-
-    /* glyphIDArray is empty */
 
     cmap_end = ftell(out);
-    rc = fseek(out, cmap_start + 12 + 2, SEEK_SET);
+
+    rc = fseek(out, subtable_header_start + 4, SEEK_SET);
     if(rc != 0) {
         perror("Couldn't seek");
         return -1;
     }
-    writeUSHORT(out, cmap_end - cmap_start - 12); /* length */
+    writeULONG(out, cmap_end - subtable_header_start); /* length */
     rc = fseek(out, cmap_end, SEEK_SET);
     if(rc != 0) {
         perror("Couldn't seek");

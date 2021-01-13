@@ -43,7 +43,7 @@ extern int bit_aligned_flag;
 extern int reencode_flag;
 
 #define FONT_SEGMENT_SIZE 128
-#define FONT_CODES 0x10000
+#define FONT_CODES 0x20000
 
 #define FACE_BOLD 1
 #define FACE_ITALIC 2
